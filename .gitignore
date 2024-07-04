@@ -1,0 +1,48 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# If you use the gopls language server
+.gopls
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Vendor directory
+/vendor/
+
+# IDE and editor directories and files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Go modules
+/go.sum
+
+# Godoc output
+/docs/
+
+# Binary directory and temporary build files
+/bin/
+/obj/
+
+# Dependency directories (optional, if not using Go modules)
+# /vendor/
+
+# Generated files
+*.gen.go
+
+# Build directories
+/build/
