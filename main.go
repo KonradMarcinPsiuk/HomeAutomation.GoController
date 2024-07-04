@@ -9,9 +9,9 @@ func main() {
 
 	pinOperator := initPinOperator()
 
-	pinOperatorErr := pinOperator.Open()
-	if pinOperatorErr != nil {
-		log.Fatalf("Failed to open pin operator: %v", pinOperatorErr)
+	pinOperatorOpenErr := pinOperator.Open()
+	if pinOperatorOpenErr != nil {
+		log.Fatalf("Failed to open pin operator: %v", pinOperatorOpenErr)
 	}
 
 	defer func() {
