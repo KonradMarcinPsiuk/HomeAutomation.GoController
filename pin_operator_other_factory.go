@@ -2,8 +2,11 @@
 
 package main
 
-import "GoController/gpio"
+import (
+	"GoController/gpio"
+	"GoController/logger"
+)
 
-func initPinOperator() gpio.PinOperator {
-	return gpio.NewMockGPIO()
+func initPinOperator(logger logger.Logger) gpio.PinOperator {
+	return gpio.NewMockGPIO(logger)
 }
