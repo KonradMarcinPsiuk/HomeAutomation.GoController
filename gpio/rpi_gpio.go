@@ -35,24 +35,26 @@ func (g *RpiGPIO) SetLow() {
 
 func (g *RpiGPIO) Open() error {
 	g.logger.Info(fmt.Sprintf("%s: Opening GPIO pin controller", g.name))
+
 	err := rpio.Open()
 
 	if err != nil {
-		g.logger.Error(fmt.Sprintf("%s: Failed to open GPIO pin controller", g.name), err)
 		return err
 	}
 
+	g.logger.Error(fmt.Sprintf("%s: GPIO pin controller open", g.name), err)
 	return nil
 }
 
 func (g *RpiGPIO) Close() error {
 	g.logger.Info(fmt.Sprintf("%s: Closing GPIO pin controller", g.name))
+
 	err := rpio.Close()
 
 	if err != nil {
-		g.logger.Error(fmt.Sprintf("%s: Failed to close GPIO pin controller", g.name), err)
 		return err
 	}
 
+	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller closed", g.name))
 	return nil
 }
