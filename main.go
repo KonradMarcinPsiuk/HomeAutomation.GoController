@@ -2,6 +2,7 @@ package main
 
 import (
 	"GoController/logger"
+	"GoController/mqtt"
 	"time"
 )
 
@@ -20,6 +21,15 @@ func main() {
 	}
 
 	log := logger.NewLogger(logConfig)
+
+	mqttConfig := mqtt.Config{
+		Broker:   "tcp://192.168.1.110:1883",
+		Topic:    "your/topic",
+		ClientID: "go-mqtt-client",
+		Username: "",
+		Password: "",
+	}
+	mqttClient := mqtt.NewMQTTClient(mqttConfig)
 
 	pinOperator := initPinOperator(log)
 
