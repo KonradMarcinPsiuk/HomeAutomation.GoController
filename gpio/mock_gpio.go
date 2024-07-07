@@ -5,6 +5,7 @@ package gpio
 import (
 	"GoController/logger"
 	"fmt"
+	"time"
 )
 
 type MockGPIO struct {
@@ -33,11 +34,17 @@ func (g *MockGPIO) SetLow() {
 func (g *MockGPIO) Open() error {
 	g.logger.Info(fmt.Sprintf("%s: Opening GPIO pin controller", g.name))
 
+	time.Sleep(1 * time.Second)
+
+	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller open", g.name))
 	return nil
 }
 
 func (g *MockGPIO) Close() error {
 	g.logger.Info(fmt.Sprintf("%s: Closing GPIO pin controller", g.name))
 
+	time.Sleep(1 * time.Second)
+
+	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller closed", g.name))
 	return nil
 }
