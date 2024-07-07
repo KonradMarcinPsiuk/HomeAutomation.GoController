@@ -1,10 +1,10 @@
 package logger
 
 import (
+	"fmt"
 	"github.com/natefinch/lumberjack"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/diode"
-	"github.com/rs/zerolog/log"
 	"os"
 	"time"
 )
@@ -13,10 +13,15 @@ type ZerologLogger struct {
 	logger zerolog.Logger
 }
 
-func NewZerologLogger(config Config) *ZerologLogger {
-	zerolog.TimeFieldFormat = time.RFC3339
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+// NewLogger initializes a new ZerologLogger with configuration provided via LogConfig.
+// It sets the global log level, configures log file rotation and compression,
+// and combines console and file output into a multi-level writer.
+func NewLogger(config LogConfig) *ZerologLogger {
 
+	//Set time format
+	zerolog.TimeFieldFormat = time.RFC3339
+
+	//Setup lumberjack to manage log files
 	logFile := &lumberjack.Logger{
 		Filename:   config.LogFilePath,
 		MaxSize:    config.MaxSize,
@@ -25,22 +30,46 @@ func NewZerologLogger(config Config) *ZerologLogger {
 		Compress:   true,
 	}
 
+	//Setup console writer
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 
-	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.FlushInterval,
-		func(missed int) {
-			log.Error().Msgf("Logger dropped %d messages", missed)
-		})
+	//Setup file writer
+	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.FlushInterval, reportMissedLogs)
 
+	//Setup one writer from console and file writers
 	multi := zerolog.MultiLevelWriter(consoleWriter, diodeWriter)
-	log.Logger = zerolog.New(multi).With().Timestamp().Logger()
 
-	return &ZerologLogger{logger: log.Logger}
+	//Get log level and create logger instance
+	logLevel := getZerologLevel(config.LogLevel)
+	loggerInstance := zerolog.New(multi).With().Timestamp().Logger().Level(logLevel)
+
+	return &ZerologLogger{logger: loggerInstance}
+}
+
+func reportMissedLogs(missed int) {
+	fmt.Printf("Logger dropped %d messages\n", missed)
+}
+
+func getZerologLevel(level LogLevel) zerolog.Level {
+	switch level {
+	case DebugLevel:
+		return zerolog.DebugLevel
+	case InfoLevel:
+		return zerolog.InfoLevel
+	case WarnLevel:
+		return zerolog.WarnLevel
+	case ErrorLevel:
+		return zerolog.ErrorLevel
+	default:
+		return zerolog.InfoLevel
+	}
 }
 
 func (l *ZerologLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
+	//Start a new message with the given level
 	event := l.logger.WithLevel(level)
 
+	//If error was passed to this function, write it to the log, otherwise just write the message
 	if len(errs) > 0 && errs[0] != nil {
 		event.Err(errs[0]).Msg(msg)
 	} else {

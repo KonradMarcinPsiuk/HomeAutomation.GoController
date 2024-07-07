@@ -11,10 +11,10 @@ import (
 type RpiGPIO struct {
 	gpioPin rpio.Pin
 	name    string
-	logger  logger.Logger
+	logger  logger.LogOperator
 }
 
-func NewRpiGPIO(logger logger.Logger) *RpiGPIO {
+func NewRpiGPIO(logger logger.LogOperator) *RpiGPIO {
 	return &RpiGPIO{name: "Raspberry Pi GPIO Controller", logger: logger}
 }
 
@@ -38,7 +38,7 @@ func (g *RpiGPIO) Open() error {
 	err := rpio.Open()
 
 	if err != nil {
-		g.logger.Error(fmt.Sprintf("%s: Failed to open GPIO pin controller, error:%s", g.name), err)
+		g.logger.Error(fmt.Sprintf("%s: Failed to open GPIO pin controller", g.name), err)
 		return err
 	}
 
@@ -50,7 +50,7 @@ func (g *RpiGPIO) Close() error {
 	err := rpio.Close()
 
 	if err != nil {
-		g.logger.Error(fmt.Sprintf("%s: Failed to close GPIO pin controller, error: %s", g.name), err)
+		g.logger.Error(fmt.Sprintf("%s: Failed to close GPIO pin controller", g.name), err)
 		return err
 	}
 

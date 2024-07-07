@@ -2,7 +2,6 @@ package main
 
 import (
 	"GoController/logger"
-	"fmt"
 	"time"
 )
 
@@ -10,22 +9,22 @@ const logFileName string = "logs/goController.log"
 
 func main() {
 
-	config := logger.Config{
+	logConfig := logger.LogConfig{
 		LogFilePath:   logFileName,
 		BufferSize:    1000,
 		FlushInterval: 1 * time.Second,
 		MaxSize:       1,
 		MaxBackups:    3,
 		MaxAge:        30,
+		LogLevel:      logger.InfoLevel,
 	}
 
-	log := logger.NewZerologLogger(config)
-
-	log.Error("Testing log", fmt.Errorf("a new error occurred at %v", time.Now()))
+	log := logger.NewLogger(logConfig)
 
 	pinOperator := initPinOperator(log)
 
 	pinOperatorOpenErr := pinOperator.Open()
+
 	if pinOperatorOpenErr != nil {
 		log.Error("Failed to open pin operator")
 	}

@@ -10,10 +10,10 @@ import (
 type MockGPIO struct {
 	gpioPin uint8
 	name    string
-	logger  logger.Logger
+	logger  logger.LogOperator
 }
 
-func NewMockGPIO(logger logger.Logger) *MockGPIO {
+func NewMockGPIO(logger logger.LogOperator) *MockGPIO {
 	return &MockGPIO{name: "Mock GPIO Controller", logger: logger}
 }
 

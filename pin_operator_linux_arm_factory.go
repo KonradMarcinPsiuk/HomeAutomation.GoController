@@ -7,6 +7,6 @@ import (
 	"GoController/logger"
 )
 
-func initPinOperator(logger logger.Logger) gpio.PinOperator {
+func initPinOperator(logger logger.LogOperator) gpio.PinOperator {
 	return gpio.NewRpiGPIO(logger)
 }
