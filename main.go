@@ -3,12 +3,17 @@ package main
 import (
 	"GoController/logger"
 	"GoController/mqtt"
+	"fmt"
+	"os"
+	"sync"
 	"time"
 )
 
 const logFileName string = "logs/goController.log"
 
 func main() {
+
+	var mutex sync.Mutex
 
 	logConfig := logger.LogConfig{
 		LogFilePath:   logFileName,
@@ -22,17 +27,15 @@ func main() {
 
 	log := logger.NewLogger(logConfig)
 
-	mqttConfig := mqtt.Config{
-		Broker:   "tcp://192.168.1.110:1883",
-		Topic:    "your/topic",
+	mqttConfig := mqtt.MQTTConfig{
+		Broker:   os.Getenv("mqtt_broker"),
+		Topic:    "topic",
 		ClientID: "go-mqtt-client",
 		Username: "",
 		Password: "",
 	}
-	mqttClient := mqtt.NewMQTTClient(mqttConfig)
 
 	pinOperator := initPinOperator(log)
-
 	pinOperatorOpenErr := pinOperator.Open()
 
 	if pinOperatorOpenErr != nil {
@@ -48,11 +51,23 @@ func main() {
 
 	pinOperator.SetOutputPin(10)
 
-	for {
-		time.Sleep(1 * time.Second)
-		pinOperator.SetHigh()
+	messageCallback := func(message mqtt.ReceivedMessage) {
 
-		time.Sleep(1 * time.Second)
-		pinOperator.SetLow()
+		mutex.Lock()
+		defer mutex.Unlock()
+		log.Info(fmt.Sprint("Received message: ", string(message.Payload)))
+
+		if string(message.Payload) == "SetHigh" {
+			pinOperator.SetHigh()
+		}
+		if string(message.Payload) == "SetLow" {
+			pinOperator.SetLow()
+		}
 	}
+
+	mqttClient := mqtt.NewMQTTClient(mqttConfig, log)
+
+	mqttClient.SetMessageCallback(messageCallback)
+
+	select {}
 }
