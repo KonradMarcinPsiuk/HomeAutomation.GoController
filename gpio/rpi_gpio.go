@@ -42,7 +42,7 @@ func (g *RpiGPIO) Open() error {
 		return err
 	}
 
-	g.logger.Error(fmt.Sprintf("%s: GPIO pin controller open", g.name), err)
+	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller open", g.name), err)
 	return nil
 }
 
