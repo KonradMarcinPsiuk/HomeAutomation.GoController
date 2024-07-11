@@ -9,15 +9,17 @@ import (
 func TestLoggerWriteToFile(t *testing.T) {
 	const logFilePath = "test.log"
 
-	const debugMessage = "debug message"
-	const infoMessage = "info message"
-	const warnMessage = "warn message"
-	const errorMessage = "error message"
+	const (
+		debugMessage = "debug message"
+		infoMessage  = "info message"
+		warnMessage  = "warn message"
+		errorMessage = "error message"
+	)
 
 	config := LogConfig{
 		LogFilePath: logFilePath,
 		BufferSize:  1000,
-		MaxSize:     1, // 1 MB
+		MaxSize:     1,
 		MaxBackups:  1,
 		MaxAge:      1,
 		LogLevel:    DebugLevel,
@@ -43,10 +45,10 @@ func TestLoggerWriteToFile(t *testing.T) {
 		t.Errorf("Log file does not contain the expected content")
 	}
 
-	defer func(name string) {
-		err := os.Remove(name)
+	t.Cleanup(func() {
+		err := os.Remove(logFilePath)
 		if err != nil {
 			t.Fatalf("Cannot remove log file: %v", err)
 		}
-	}(logFilePath)
+	})
 }

@@ -24,13 +24,7 @@ func NewLogger(config LogConfig) *ZerologLogger {
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	//Setup lumberjack to manage log files
-	logFile := &lumberjack.Logger{
-		Filename:   config.LogFilePath,
-		MaxSize:    config.MaxSize,
-		MaxBackups: config.MaxBackups,
-		MaxAge:     config.MaxAge,
-		Compress:   true,
-	}
+	logFile := setupLumberjackLogger(&config)
 
 	//Setup console writer
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
@@ -46,6 +40,16 @@ func NewLogger(config LogConfig) *ZerologLogger {
 	loggerInstance := zerolog.New(multi).With().Timestamp().Logger().Level(logLevel)
 
 	return &ZerologLogger{logger: loggerInstance, lumberjackLogger: logFile, diodeWriter: diodeWriter}
+}
+
+func setupLumberjackLogger(config *LogConfig) *lumberjack.Logger {
+	return &lumberjack.Logger{
+		Filename:   config.LogFilePath,
+		MaxSize:    config.MaxSize,
+		MaxBackups: config.MaxBackups,
+		MaxAge:     config.MaxAge,
+		Compress:   true,
+	}
 }
 
 func reportMissedLogs(missed int) {
@@ -85,14 +89,14 @@ func (l *ZerologLogger) Close() {
 	// Flush the diode writer
 	var err = l.diodeWriter.Close()
 	if err != nil {
-		fmt.Printf("Failed to close diode writer: %v\n", err)
+		l.logger.Error().Err(err).Msg("Failed to close diode writer")
 	}
 
 	// Close the lumberjack logger
 	if l.lumberjackLogger != nil {
 		lumberjackErr := l.lumberjackLogger.Close()
 		if lumberjackErr != nil {
-			fmt.Printf("Failed to close log file: %v\n", lumberjackErr)
+			l.logger.Error().Err(err).Msg("Failed to close log file")
 		}
 	}
 }
