@@ -20,6 +20,7 @@ func getConfig() LogConfig {
 func TestLoggerWriteToFile(t *testing.T) {
 
 	config := getConfig()
+
 	if _, err := os.Stat(config.LogFilePath); err == nil {
 		t.Fatalf("Log file %s already exists", config.LogFilePath)
 	}
@@ -53,7 +54,7 @@ func TestLoggerWriteToFile(t *testing.T) {
 
 	err := logger.Close()
 	if err != nil {
-		t.FailNow()
+		t.Fatalf("Failed to close logger: %v", err)
 	}
 
 	if _, err := os.Stat(config.LogFilePath); os.IsNotExist(err) {
