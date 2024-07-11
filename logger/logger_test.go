@@ -9,6 +9,16 @@ import (
 func TestLoggerWriteToFile(t *testing.T) {
 	const logFilePath = "test.log"
 
+	if _, err := os.Stat(logFilePath); err == nil {
+		t.Fatalf("Log file %s already exists", logFilePath)
+	}
+
+	t.Cleanup(func() {
+		if err := os.Remove(logFilePath); err != nil && !os.IsNotExist(err) {
+			t.Fatalf("Cannot remove log file: %v", err)
+		}
+	})
+
 	const (
 		debugMessage = "debug message"
 		infoMessage  = "info message"
@@ -27,6 +37,8 @@ func TestLoggerWriteToFile(t *testing.T) {
 
 	logger := NewLogger(config)
 
+	defer logger.Close()
+
 	logger.Debug(debugMessage)
 	logger.Info(infoMessage)
 	logger.Warn(warnMessage)
@@ -34,21 +46,26 @@ func TestLoggerWriteToFile(t *testing.T) {
 
 	logger.Close()
 
+	if _, err := os.Stat(logFilePath); os.IsNotExist(err) {
+		t.Fatalf("Log file %s was not created", logFilePath)
+	}
+
 	content, err := os.ReadFile(logFilePath)
 	if err != nil {
 		t.Fatalf("Failed to read log file: %v", err)
 	}
 
 	logContent := string(content)
-	if !strings.Contains(logContent, debugMessage) || !strings.Contains(logContent, infoMessage) ||
-		!strings.Contains(logContent, warnMessage) || !strings.Contains(logContent, errorMessage) {
-		t.Errorf("Log file does not contain the expected content")
+	if !strings.Contains(logContent, debugMessage) {
+		t.Errorf("Log file does not contain the debug message: %s", debugMessage)
 	}
-
-	t.Cleanup(func() {
-		err := os.Remove(logFilePath)
-		if err != nil {
-			t.Fatalf("Cannot remove log file: %v", err)
-		}
-	})
+	if !strings.Contains(logContent, infoMessage) {
+		t.Errorf("Log file does not contain the info message: %s", infoMessage)
+	}
+	if !strings.Contains(logContent, warnMessage) {
+		t.Errorf("Log file does not contain the warn message: %s", warnMessage)
+	}
+	if !strings.Contains(logContent, errorMessage) {
+		t.Errorf("Log file does not contain the error message: %s", errorMessage)
+	}
 }
