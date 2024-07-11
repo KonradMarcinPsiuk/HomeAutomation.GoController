@@ -2,15 +2,17 @@ package logger
 
 import (
 	"fmt"
-	"github.com/natefinch/lumberjack"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/diode"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 	"time"
 )
 
 type ZerologLogger struct {
-	logger zerolog.Logger
+	logger           zerolog.Logger
+	diodeWriter      diode.Writer
+	lumberjackLogger *lumberjack.Logger
 }
 
 // NewLogger initializes a new ZerologLogger with configuration provided via LogConfig.
@@ -22,13 +24,7 @@ func NewLogger(config LogConfig) *ZerologLogger {
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	//Setup lumberjack to manage log files
-	logFile := &lumberjack.Logger{
-		Filename:   config.LogFilePath,
-		MaxSize:    config.MaxSize,
-		MaxBackups: config.MaxBackups,
-		MaxAge:     config.MaxAge,
-		Compress:   true,
-	}
+	logFile := setupLumberjackLogger(&config)
 
 	//Setup console writer
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
@@ -43,7 +39,17 @@ func NewLogger(config LogConfig) *ZerologLogger {
 	logLevel := getZerologLevel(config.LogLevel)
 	loggerInstance := zerolog.New(multi).With().Timestamp().Logger().Level(logLevel)
 
-	return &ZerologLogger{logger: loggerInstance}
+	return &ZerologLogger{logger: loggerInstance, lumberjackLogger: logFile, diodeWriter: diodeWriter}
+}
+
+func setupLumberjackLogger(config *LogConfig) *lumberjack.Logger {
+	return &lumberjack.Logger{
+		Filename:   config.LogFilePath,
+		MaxSize:    config.MaxSize,
+		MaxBackups: config.MaxBackups,
+		MaxAge:     config.MaxAge,
+		Compress:   true,
+	}
 }
 
 func reportMissedLogs(missed int) {
@@ -77,18 +83,40 @@ func (l *ZerologLogger) logWithOptionalError(level zerolog.Level, msg string, er
 	}
 }
 
+// Close flushes the diode writer and closes the lumberjack logger if it exists. If an error occurs during the closing process,
+// it will be printed to standard output.
+func (l *ZerologLogger) Close() {
+	// Flush the diode writer
+	var err = l.diodeWriter.Close()
+	if err != nil {
+		l.logger.Error().Err(err).Msg("Failed to close diode writer")
+	}
+
+	// Close the lumberjack logger
+	if l.lumberjackLogger != nil {
+		lumberjackErr := l.lumberjackLogger.Close()
+		if lumberjackErr != nil {
+			l.logger.Error().Err(err).Msg("Failed to close log file")
+		}
+	}
+}
+
+// Debug logs a debug-level message with optional errors.
 func (l *ZerologLogger) Debug(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.DebugLevel, msg, errs...)
 }
 
+// Info logs an info-level message with optional errors.
 func (l *ZerologLogger) Info(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.InfoLevel, msg, errs...)
 }
 
+// Warn logs a warning-level message with optional errors.
 func (l *ZerologLogger) Warn(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.WarnLevel, msg, errs...)
 }
 
+// Error logs an error-level message with optional errors.
 func (l *ZerologLogger) Error(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.ErrorLevel, msg, errs...)
 }
