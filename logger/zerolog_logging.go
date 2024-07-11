@@ -69,20 +69,22 @@ func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, er
 
 // Close flushes the diode writer and closes the lumberjack logger if it exists. If an error occurs during the closing process,
 // it will be printed to standard output.
-func (l *ZeroLogLogger) Close() {
+func (l *ZeroLogLogger) Close() error {
 	// Flush the diode writer
 	var err = l.diodeWriter.Close()
 	if err != nil {
-		l.logger.Error().Err(err).Msg("Failed to close diode writer")
+		return err
 	}
 
 	// Close the lumberjack logger
 	if l.lumberjackLogger != nil {
 		lumberjackErr := l.lumberjackLogger.Close()
 		if lumberjackErr != nil {
-			l.logger.Error().Err(err).Msg("Failed to close log file")
+			return lumberjackErr
 		}
 	}
+
+	return nil
 }
 
 // Debug logs a debug-level message with optional errors.

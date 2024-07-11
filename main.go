@@ -2,6 +2,7 @@ package main
 
 import (
 	"GoController/logger"
+	"fmt"
 	"time"
 )
 
@@ -33,6 +34,11 @@ func main() {
 		pinOperatorCloseError := pinOperator.Close()
 		if pinOperatorCloseError != nil {
 			log.Error("Failed to close pin operator")
+		}
+
+		loggerCloseError := log.Close()
+		if loggerCloseError != nil {
+			fmt.Printf("Failed to close logger. Error: %s\n", loggerCloseError)
 		}
 	}()
 

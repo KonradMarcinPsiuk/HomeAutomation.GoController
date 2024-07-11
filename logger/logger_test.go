@@ -6,15 +6,26 @@ import (
 	"testing"
 )
 
-func TestLoggerWriteToFile(t *testing.T) {
-	const logFilePath = "test.log"
+func getConfig() LogConfig {
+	return LogConfig{
+		LogFilePath: "test.log",
+		MaxSize:     5,
+		MaxBackups:  2,
+		MaxAge:      10,
+		BufferSize:  1000,
+		LogLevel:    DebugLevel,
+	}
+}
 
-	if _, err := os.Stat(logFilePath); err == nil {
-		t.Fatalf("Log file %s already exists", logFilePath)
+func TestLoggerWriteToFile(t *testing.T) {
+
+	config := getConfig()
+	if _, err := os.Stat(config.LogFilePath); err == nil {
+		t.Fatalf("Log file %s already exists", config.LogFilePath)
 	}
 
 	t.Cleanup(func() {
-		if err := os.Remove(logFilePath); err != nil && !os.IsNotExist(err) {
+		if err := os.Remove(config.LogFilePath); err != nil && !os.IsNotExist(err) {
 			t.Fatalf("Cannot remove log file: %v", err)
 		}
 	})
@@ -26,31 +37,30 @@ func TestLoggerWriteToFile(t *testing.T) {
 		errorMessage = "error message"
 	)
 
-	config := LogConfig{
-		LogFilePath: logFilePath,
-		BufferSize:  1000,
-		MaxSize:     1,
-		MaxBackups:  1,
-		MaxAge:      1,
-		LogLevel:    DebugLevel,
-	}
-
 	logger := NewLogger(config)
 
-	defer logger.Close()
+	defer func(logger *ZeroLogLogger) {
+		err := logger.Close()
+		if err != nil {
+			t.FailNow()
+		}
+	}(logger)
 
 	logger.Debug(debugMessage)
 	logger.Info(infoMessage)
 	logger.Warn(warnMessage)
 	logger.Error(errorMessage)
 
-	logger.Close()
-
-	if _, err := os.Stat(logFilePath); os.IsNotExist(err) {
-		t.Fatalf("Log file %s was not created", logFilePath)
+	err := logger.Close()
+	if err != nil {
+		t.FailNow()
 	}
 
-	content, err := os.ReadFile(logFilePath)
+	if _, err := os.Stat(config.LogFilePath); os.IsNotExist(err) {
+		t.Fatalf("Log file %s was not created", config.LogFilePath)
+	}
+
+	content, err := os.ReadFile(config.LogFilePath)
 	if err != nil {
 		t.Fatalf("Failed to read log file: %v", err)
 	}
