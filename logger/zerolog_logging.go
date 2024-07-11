@@ -9,16 +9,16 @@ import (
 	"time"
 )
 
-type ZerologLogger struct {
+type ZeroLogLogger struct {
 	logger           zerolog.Logger
 	diodeWriter      diode.Writer
 	lumberjackLogger *lumberjack.Logger
 }
 
-// NewLogger initializes a new ZerologLogger with configuration provided via LogConfig.
+// NewLogger initializes a new ZeroLogLogger with configuration provided via LogConfig.
 // It sets the global log level, configures log file rotation and compression,
 // and combines console and file output into a multi-level writer.
-func NewLogger(config LogConfig) *ZerologLogger {
+func NewLogger(config LogConfig) *ZeroLogLogger {
 
 	//Set time format
 	zerolog.TimeFieldFormat = time.RFC3339
@@ -27,7 +27,7 @@ func NewLogger(config LogConfig) *ZerologLogger {
 	logFile := setupLumberjackLogger(&config)
 
 	//Setup console writer
-	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
+	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: zerolog.TimeFieldFormat}
 
 	//Setup file writer
 	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.FlushInterval, reportMissedLogs)
@@ -35,11 +35,10 @@ func NewLogger(config LogConfig) *ZerologLogger {
 	//Setup one writer from console and file writers
 	multi := zerolog.MultiLevelWriter(consoleWriter, diodeWriter)
 
-	//Get log level and create logger instance
-	logLevel := getZerologLevel(config.LogLevel)
-	loggerInstance := zerolog.New(multi).With().Timestamp().Logger().Level(logLevel)
+	//Create logger instance
+	loggerInstance := zerolog.New(multi).With().Timestamp().Logger()
 
-	return &ZerologLogger{logger: loggerInstance, lumberjackLogger: logFile, diodeWriter: diodeWriter}
+	return &ZeroLogLogger{logger: loggerInstance, lumberjackLogger: logFile, diodeWriter: diodeWriter}
 }
 
 func setupLumberjackLogger(config *LogConfig) *lumberjack.Logger {
@@ -56,22 +55,7 @@ func reportMissedLogs(missed int) {
 	fmt.Printf("Logger dropped %d messages\n", missed)
 }
 
-func getZerologLevel(level LogLevel) zerolog.Level {
-	switch level {
-	case DebugLevel:
-		return zerolog.DebugLevel
-	case InfoLevel:
-		return zerolog.InfoLevel
-	case WarnLevel:
-		return zerolog.WarnLevel
-	case ErrorLevel:
-		return zerolog.ErrorLevel
-	default:
-		return zerolog.InfoLevel
-	}
-}
-
-func (l *ZerologLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
+func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
 	//Start a new message with the given level
 	event := l.logger.WithLevel(level)
 
@@ -85,7 +69,7 @@ func (l *ZerologLogger) logWithOptionalError(level zerolog.Level, msg string, er
 
 // Close flushes the diode writer and closes the lumberjack logger if it exists. If an error occurs during the closing process,
 // it will be printed to standard output.
-func (l *ZerologLogger) Close() {
+func (l *ZeroLogLogger) Close() {
 	// Flush the diode writer
 	var err = l.diodeWriter.Close()
 	if err != nil {
@@ -102,21 +86,21 @@ func (l *ZerologLogger) Close() {
 }
 
 // Debug logs a debug-level message with optional errors.
-func (l *ZerologLogger) Debug(msg string, errs ...error) {
+func (l *ZeroLogLogger) Debug(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.DebugLevel, msg, errs...)
 }
 
 // Info logs an info-level message with optional errors.
-func (l *ZerologLogger) Info(msg string, errs ...error) {
+func (l *ZeroLogLogger) Info(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.InfoLevel, msg, errs...)
 }
 
 // Warn logs a warning-level message with optional errors.
-func (l *ZerologLogger) Warn(msg string, errs ...error) {
+func (l *ZeroLogLogger) Warn(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.WarnLevel, msg, errs...)
 }
 
 // Error logs an error-level message with optional errors.
-func (l *ZerologLogger) Error(msg string, errs ...error) {
+func (l *ZeroLogLogger) Error(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.ErrorLevel, msg, errs...)
 }
