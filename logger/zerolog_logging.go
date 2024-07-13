@@ -71,16 +71,14 @@ func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, er
 // it will be printed to standard output.
 func (l *ZeroLogLogger) Close() error {
 	// Flush the diode writer
-	var err = l.diodeWriter.Close()
-	if err != nil {
+	if err := l.diodeWriter.Close(); err != nil {
 		return err
 	}
 
 	// Close the lumberjack logger
 	if l.lumberjackLogger != nil {
-		lumberjackErr := l.lumberjackLogger.Close()
-		if lumberjackErr != nil {
-			return lumberjackErr
+		if err := l.lumberjackLogger.Close(); err != nil {
+			return err
 		}
 	}
 
