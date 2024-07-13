@@ -88,21 +88,36 @@ func (l *ZeroLogLogger) Close() error {
 }
 
 // Debug logs a debug-level message with optional errors.
-func (l *ZeroLogLogger) Debug(msg string, errs ...error) {
-	l.logWithOptionalError(zerolog.DebugLevel, msg, errs...)
+func (l *ZeroLogLogger) Debug(msg string) {
+	l.logWithOptionalError(zerolog.DebugLevel, msg, nil)
 }
 
 // Info logs an info-level message with optional errors.
-func (l *ZeroLogLogger) Info(msg string, errs ...error) {
-	l.logWithOptionalError(zerolog.InfoLevel, msg, errs...)
+func (l *ZeroLogLogger) Info(msg string) {
+	l.logWithOptionalError(zerolog.InfoLevel, msg, nil)
+}
+
+// Trace logs a trace-level message with optional errors.
+func (l *ZeroLogLogger) Trace(msg string) {
+	l.logWithOptionalError(zerolog.TraceLevel, msg, nil)
 }
 
 // Warn logs a warning-level message with optional errors.
-func (l *ZeroLogLogger) Warn(msg string, errs ...error) {
-	l.logWithOptionalError(zerolog.WarnLevel, msg, errs...)
+func (l *ZeroLogLogger) Warn(msg string) {
+	l.logWithOptionalError(zerolog.WarnLevel, msg, nil)
 }
 
 // Error logs an error-level message with optional errors.
 func (l *ZeroLogLogger) Error(msg string, errs ...error) {
 	l.logWithOptionalError(zerolog.ErrorLevel, msg, errs...)
+}
+
+// Fatal logs a fatal-level message with optional errors.
+func (l *ZeroLogLogger) Fatal(msg string, errs ...error) {
+	l.logWithOptionalError(zerolog.FatalLevel, msg, errs...)
+}
+
+// Panic logs a panic-level message with optional errors.
+func (l *ZeroLogLogger) Panic(msg string, errs ...error) {
+	l.logWithOptionalError(zerolog.PanicLevel, msg, errs...)
 }

@@ -23,16 +23,6 @@ func (g *RpiGPIO) SetOutputPin(pin uint8) {
 	g.gpioPin.Output()
 }
 
-func (g *RpiGPIO) SetHigh() {
-	g.gpioPin.High()
-	g.logger.Info(fmt.Sprintf("%s: GPIO Pin %v set to HIGH", g.name, g.gpioPin))
-}
-
-func (g *RpiGPIO) SetLow() {
-	g.gpioPin.Low()
-	g.logger.Info(fmt.Sprintf("%s: GPIO Pin %v set to LOW", g.name, g.gpioPin))
-}
-
 func (g *RpiGPIO) Open() error {
 	g.logger.Info(fmt.Sprintf("%s: Opening GPIO pin controller", g.name))
 
@@ -42,8 +32,18 @@ func (g *RpiGPIO) Open() error {
 		return err
 	}
 
-	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller open", g.name), err)
+	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller open", g.name))
 	return nil
+}
+
+func (g *RpiGPIO) SetHigh() {
+	g.gpioPin.High()
+	g.logger.Info(fmt.Sprintf("%s: GPIO Pin %v set to HIGH", g.name, g.gpioPin))
+}
+
+func (g *RpiGPIO) SetLow() {
+	g.gpioPin.Low()
+	g.logger.Info(fmt.Sprintf("%s: GPIO Pin %v set to LOW", g.name, g.gpioPin))
 }
 
 func (g *RpiGPIO) Close() error {

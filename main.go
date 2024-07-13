@@ -17,7 +17,6 @@ func main() {
 		MaxSize:       1,
 		MaxBackups:    3,
 		MaxAge:        30,
-		LogLevel:      logger.InfoLevel,
 	}
 
 	log := logger.NewLogger(logConfig)
@@ -27,13 +26,13 @@ func main() {
 	pinOperatorOpenErr := pinOperator.Open()
 
 	if pinOperatorOpenErr != nil {
-		log.Error("Failed to open pin operator")
+		log.Panic("Failed to open pin operator")
 	}
 
 	defer func() {
 		pinOperatorCloseError := pinOperator.Close()
 		if pinOperatorCloseError != nil {
-			log.Error("Failed to close pin operator")
+			log.Panic("Failed to close pin operator")
 		}
 
 		loggerCloseError := log.Close()

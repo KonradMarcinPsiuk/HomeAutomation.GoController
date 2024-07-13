@@ -13,7 +13,6 @@ func getConfig() LogConfig {
 		MaxBackups:  2,
 		MaxAge:      10,
 		BufferSize:  1000,
-		LogLevel:    DebugLevel,
 	}
 }
 

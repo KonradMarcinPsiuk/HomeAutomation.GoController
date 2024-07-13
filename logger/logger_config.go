@@ -9,5 +9,4 @@ type LogConfig struct {
 	MaxSize       int
 	MaxBackups    int
 	MaxAge        int
-	LogLevel      LogLevel
 }
