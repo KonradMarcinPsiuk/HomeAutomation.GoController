@@ -29,9 +29,6 @@ go.work
 *~
 .DS_Store
 
-# Go modules
-/go.sum
-
 # Godoc output
 /docs/
 
