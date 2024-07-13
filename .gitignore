@@ -17,6 +17,7 @@ go.work
 # Logs and temporary files
 *.log
 *.tmp
+*.gz
 
 # Vendor directory
 /vendor/
