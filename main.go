@@ -21,17 +21,14 @@ func main() {
 
 	log := logger.NewLogger(logConfig)
 
+	log.Info("Starting Pin Operator")
 	pinOperator := initPinOperator(log)
-
-	pinOperatorOpenErr := pinOperator.Open()
-
-	if pinOperatorOpenErr != nil {
+	if err := pinOperator.Open(); err != nil {
 		log.Panic("Failed to open pin operator")
 	}
 
 	defer func() {
-		pinOperatorCloseError := pinOperator.Close()
-		if pinOperatorCloseError != nil {
+		if err := pinOperator.Close(); err != nil {
 			log.Panic("Failed to close pin operator")
 		}
 
