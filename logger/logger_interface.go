@@ -5,12 +5,8 @@ type LogOperator interface {
 	Info(msg string)
 	Trace(msg string)
 	Warn(msg string)
-	Error(msg string, err ...error)
-	Fatal(msg string, err ...error)
-	Panic(msg string, err ...error)
+	Error(msg string, err error)
+	Fatal(msg string, err error)
+	Panic(msg string, err error)
 	Close() error
-}
-
-type Logger interface {
-	NewLogger(config LogConfig) LogOperator
 }

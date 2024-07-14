@@ -16,8 +16,6 @@ type ZeroLogLogger struct {
 }
 
 // NewLogger initializes a new ZeroLogLogger with configuration provided via LogConfig.
-// It sets the global log level, configures log file rotation and compression,
-// and combines console and file output into a multi-level writer.
 func NewLogger(config LogConfig) *ZeroLogLogger {
 
 	//Set time format
@@ -30,7 +28,7 @@ func NewLogger(config LogConfig) *ZeroLogLogger {
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: zerolog.TimeFieldFormat}
 
 	//Setup file writer
-	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.FlushInterval, reportMissedLogs)
+	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.PollInterval, reportMissedLogs)
 
 	//Setup one writer from console and file writers
 	multi := zerolog.MultiLevelWriter(consoleWriter, diodeWriter)
@@ -55,18 +53,6 @@ func reportMissedLogs(missed int) {
 	fmt.Printf("Logger dropped %d messages\n", missed)
 }
 
-func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
-	//Start a new message with the given level
-	event := l.logger.WithLevel(level)
-
-	//If error was passed to this function, write it to the log, otherwise just write the message
-	if len(errs) > 0 && errs[0] != nil {
-		event.Err(errs[0]).Msg(msg)
-	} else {
-		event.Msg(msg)
-	}
-}
-
 // Close flushes the diode writer and closes the lumberjack logger if it exists. If an error occurs during the closing process,
 // it will be printed to standard output.
 func (l *ZeroLogLogger) Close() error {
@@ -85,37 +71,37 @@ func (l *ZeroLogLogger) Close() error {
 	return nil
 }
 
-// Debug logs a debug-level message with optional errors.
+// Debug logs a debug-level message.
 func (l *ZeroLogLogger) Debug(msg string) {
-	l.logWithOptionalError(zerolog.DebugLevel, msg, nil)
+	l.logger.Debug().Msg(msg)
 }
 
-// Info logs an info-level message with optional errors.
+// Info logs an info-level message.
 func (l *ZeroLogLogger) Info(msg string) {
-	l.logWithOptionalError(zerolog.InfoLevel, msg, nil)
+	l.logger.Info().Msg(msg)
 }
 
-// Trace logs a trace-level message with optional errors.
+// Trace logs a trace-level message.
 func (l *ZeroLogLogger) Trace(msg string) {
-	l.logWithOptionalError(zerolog.TraceLevel, msg, nil)
+	l.logger.Trace().Msg(msg)
 }
 
-// Warn logs a warning-level message with optional errors.
+// Warn logs a warning-level message.
 func (l *ZeroLogLogger) Warn(msg string) {
-	l.logWithOptionalError(zerolog.WarnLevel, msg, nil)
+	l.logger.Warn().Msg(msg)
 }
 
-// Error logs an error-level message with optional errors.
-func (l *ZeroLogLogger) Error(msg string, errs ...error) {
-	l.logWithOptionalError(zerolog.ErrorLevel, msg, errs...)
+// Error logs an error-level message with error.
+func (l *ZeroLogLogger) Error(msg string, err error) {
+	l.logger.Error().Err(err).Msg(msg)
 }
 
-// Fatal logs a fatal-level message with optional errors.
-func (l *ZeroLogLogger) Fatal(msg string, errs ...error) {
-	l.logWithOptionalError(zerolog.FatalLevel, msg, errs...)
+// Panic logs a panic-level message with error.
+func (l *ZeroLogLogger) Panic(msg string, err error) {
+	l.logger.Panic().Err(err).Msg(msg)
 }
 
-// Panic logs a panic-level message with optional errors.
-func (l *ZeroLogLogger) Panic(msg string, errs ...error) {
-	l.logWithOptionalError(zerolog.PanicLevel, msg, errs...)
+// Fatal logs a fatal-level message with error.
+func (l *ZeroLogLogger) Fatal(msg string, err error) {
+	l.logger.Fatal().Err(err).Msg(msg)
 }
