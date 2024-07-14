@@ -10,7 +10,3 @@ type LogOperator interface {
 	Panic(msg string, err ...error)
 	Close() error
 }
-
-type Logger interface {
-	NewLogger(config LogConfig) LogOperator
-}
