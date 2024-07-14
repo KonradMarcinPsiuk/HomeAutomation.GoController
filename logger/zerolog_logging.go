@@ -30,7 +30,7 @@ func NewLogger(config LogConfig) *ZeroLogLogger {
 	consoleWriter := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: zerolog.TimeFieldFormat}
 
 	//Setup file writer
-	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.FlushInterval, reportMissedLogs)
+	diodeWriter := diode.NewWriter(logFile, config.BufferSize, config.PollInterval, reportMissedLogs)
 
 	//Setup one writer from console and file writers
 	multi := zerolog.MultiLevelWriter(consoleWriter, diodeWriter)

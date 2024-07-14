@@ -11,12 +11,12 @@ const logFileName string = "logs/goController.log"
 func main() {
 
 	logConfig := logger.LogConfig{
-		LogFilePath:   logFileName,
-		BufferSize:    1000,
-		FlushInterval: 1 * time.Second,
-		MaxSize:       1,
-		MaxBackups:    3,
-		MaxAge:        30,
+		LogFilePath:  logFileName,
+		BufferSize:   1000,
+		PollInterval: 1 * time.Second,
+		MaxSize:      1,
+		MaxBackups:   3,
+		MaxAge:       30,
 	}
 
 	log := logger.NewLogger(logConfig)
