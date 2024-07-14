@@ -16,8 +16,6 @@ type ZeroLogLogger struct {
 }
 
 // NewLogger initializes a new ZeroLogLogger with configuration provided via LogConfig.
-// It sets the global log level, configures log file rotation and compression,
-// and combines console and file output into a multi-level writer.
 func NewLogger(config LogConfig) *ZeroLogLogger {
 
 	//Set time format
@@ -55,18 +53,6 @@ func reportMissedLogs(missed int) {
 	fmt.Printf("Logger dropped %d messages\n", missed)
 }
 
-func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
-	//Start a new message with the given level
-	event := l.logger.WithLevel(level)
-
-	//If error was passed to this function, write it to the log, otherwise just write the message
-	if len(errs) > 0 && errs[0] != nil {
-		event.Err(errs[0]).Msg(msg)
-	} else {
-		event.Msg(msg)
-	}
-}
-
 // Close flushes the diode writer and closes the lumberjack logger if it exists. If an error occurs during the closing process,
 // it will be printed to standard output.
 func (l *ZeroLogLogger) Close() error {
@@ -83,6 +69,18 @@ func (l *ZeroLogLogger) Close() error {
 	}
 
 	return nil
+}
+
+func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
+	//Start a new message with the given level
+	event := l.logger.WithLevel(level)
+
+	//If error was passed to this function, write it to the log, otherwise just write the message
+	if len(errs) > 0 && errs[0] != nil {
+		event.Err(errs[0]).Msg(msg)
+	} else {
+		event.Msg(msg)
+	}
 }
 
 // Debug logs a debug-level message with optional errors.
