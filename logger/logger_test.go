@@ -45,7 +45,9 @@ func TestLoggerWriteToFile(t *testing.T) {
 		errorMessage    = "error message"
 		errorErrMessage = "err_err_message"
 		panicMessage    = "panic message"
+		panicErrMessage = "panic_err_message"
 		fatalMessage    = "fatal message"
+		fatalErrMessage = "fatal_err_message"
 	)
 
 	logger := NewLogger(config)
@@ -62,8 +64,8 @@ func TestLoggerWriteToFile(t *testing.T) {
 	logger.Info(infoMessage)
 	logger.Warn(warnMessage)
 	logger.Error(errorMessage, errors.New(errorErrMessage))
-	logger.Panic(panicMessage)
-	logger.Fatal(fatalMessage)
+	logger.Panic(panicMessage, errors.New(panicErrMessage))
+	logger.Fatal(fatalMessage, errors.New(fatalErrMessage))
 
 	err := logger.Close()
 	if err != nil {
@@ -95,10 +97,10 @@ func TestLoggerWriteToFile(t *testing.T) {
 	if !strings.Contains(logContent, errorMessage) || !strings.Contains(logContent, errorErrMessage) {
 		t.Errorf("Log file does not contain the error message: %s", errorMessage)
 	}
-	if !strings.Contains(logContent, panicMessage) {
+	if !strings.Contains(logContent, panicMessage) || !strings.Contains(logContent, panicErrMessage) {
 		t.Errorf("Log file does not contain the panic message: %s", panicMessage)
 	}
-	if !strings.Contains(logContent, fatalMessage) {
+	if !strings.Contains(logContent, fatalMessage) || !strings.Contains(logContent, fatalErrMessage) {
 		t.Errorf("Log file does not contain the fatal message: %s", fatalMessage)
 	}
 }

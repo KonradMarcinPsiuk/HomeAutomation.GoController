@@ -6,7 +6,7 @@ type LogOperator interface {
 	Trace(msg string)
 	Warn(msg string)
 	Error(msg string, err error)
-	Fatal(msg string)
-	Panic(msg string)
+	Fatal(msg string, err error)
+	Panic(msg string, err error)
 	Close() error
 }

@@ -109,11 +109,11 @@ func (l *ZeroLogLogger) Error(msg string, err error) {
 }
 
 // Panic logs a panic-level message with error.
-func (l *ZeroLogLogger) Panic(msg string) {
-	l.logger.Panic().Msg(msg)
+func (l *ZeroLogLogger) Panic(msg string, err error) {
+	l.logger.Panic().Err(err).Msg(msg)
 }
 
 // Fatal logs a fatal-level message with error.
-func (l *ZeroLogLogger) Fatal(msg string) {
-	l.logger.Fatal().Msg(msg)
+func (l *ZeroLogLogger) Fatal(msg string, err error) {
+	l.logger.Fatal().Err(err).Msg(msg)
 }
