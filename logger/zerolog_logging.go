@@ -71,18 +71,6 @@ func (l *ZeroLogLogger) Close() error {
 	return nil
 }
 
-func (l *ZeroLogLogger) logWithOptionalError(level zerolog.Level, msg string, errs ...error) {
-	//Start a new message with the given level
-	event := l.logger.WithLevel(level)
-
-	//If error was passed to this function, write it to the log, otherwise just write the message
-	if len(errs) > 0 && errs[0] != nil {
-		event.Err(errs[0]).Msg(msg)
-	} else {
-		event.Msg(msg)
-	}
-}
-
 // Debug logs a debug-level message.
 func (l *ZeroLogLogger) Debug(msg string) {
 	l.logger.Debug().Msg(msg)
