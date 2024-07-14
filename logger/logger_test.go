@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// getConfig returns a LogConfig struct with the following default values:
 func getConfig() LogConfig {
 	return LogConfig{
 		LogFilePath: "test.log",
@@ -17,6 +18,7 @@ func getConfig() LogConfig {
 	}
 }
 
+// TestLoggerWriteToFile is a test function that verifies the functionality of writing log messages to a file.
 func TestLoggerWriteToFile(t *testing.T) {
 
 	config := getConfig()
