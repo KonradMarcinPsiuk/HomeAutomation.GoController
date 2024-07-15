@@ -146,12 +146,3 @@ func (l *ZeroLogLogger) Error(msg string, err error) {
 func (l *ZeroLogLogger) Panic(msg string, err error) {
 	l.logger.Panic().Err(err).Msg(msg)
 }
-
-// Fatal logs a fatal-level message with an error.
-//
-// Parameters:
-//   - msg: The message to be logged.
-//   - err: The error associated with the message.
-func (l *ZeroLogLogger) Fatal(msg string, err error) {
-	l.logger.Fatal().Err(err).Msg(msg)
-}
