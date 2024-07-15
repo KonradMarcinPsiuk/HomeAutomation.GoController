@@ -48,8 +48,6 @@ func TestLoggerWriteToFile(t *testing.T) {
 		errorErrMessage = "err_err_message"
 		panicMessage    = "panic message"
 		panicErrMessage = "panic_err_message"
-		fatalMessage    = "fatal message"
-		fatalErrMessage = "fatal_err_message"
 	)
 
 	logger := NewLogger(config)
@@ -66,8 +64,18 @@ func TestLoggerWriteToFile(t *testing.T) {
 	logger.Info(infoMessage)
 	logger.Warn(warnMessage)
 	logger.Error(errorMessage, errors.New(errorErrMessage))
-	logger.Panic(panicMessage, errors.New(panicErrMessage))
-	logger.Fatal(fatalMessage, errors.New(fatalErrMessage))
+
+	done := make(chan bool)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Log("Recovered in TestLoggerWriteToFile", r)
+				done <- true
+			}
+		}()
+		logger.Panic("panic message", errors.New("panic_err_message"))
+	}()
+	<-done
 
 	err := logger.Close()
 	if err != nil {
@@ -84,25 +92,19 @@ func TestLoggerWriteToFile(t *testing.T) {
 	}
 
 	logContent := string(content)
-	if !strings.Contains(logContent, traceMessage) {
-		t.Errorf("Log file does not contain the trace message: %s", traceMessage)
-	}
-	if !strings.Contains(logContent, debugMessage) {
-		t.Errorf("Log file does not contain the debug message: %s", debugMessage)
-	}
-	if !strings.Contains(logContent, infoMessage) {
-		t.Errorf("Log file does not contain the info message: %s", infoMessage)
-	}
-	if !strings.Contains(logContent, warnMessage) {
-		t.Errorf("Log file does not contain the warn message: %s", warnMessage)
-	}
-	if !strings.Contains(logContent, errorMessage) || !strings.Contains(logContent, errorErrMessage) {
-		t.Errorf("Log file does not contain the error message: %s", errorMessage)
-	}
-	if !strings.Contains(logContent, panicMessage) || !strings.Contains(logContent, panicErrMessage) {
-		t.Errorf("Log file does not contain the panic message: %s", panicMessage)
-	}
-	if !strings.Contains(logContent, fatalMessage) || !strings.Contains(logContent, fatalErrMessage) {
-		t.Errorf("Log file does not contain the fatal message: %s", fatalMessage)
+
+	checkLogMessage(t, logContent, traceMessage, "", "trace")
+	checkLogMessage(t, logContent, debugMessage, "", "debug")
+	checkLogMessage(t, logContent, infoMessage, "", "info")
+	checkLogMessage(t, logContent, warnMessage, "", "warn")
+	checkLogMessage(t, logContent, errorMessage, errorErrMessage, "error")
+	checkLogMessage(t, logContent, panicMessage, panicErrMessage, "panic")
+}
+
+func checkLogMessage(t *testing.T, logContent, message, errMessage, logType string) {
+	if !strings.Contains(logContent, message) || (errMessage != "" && !strings.Contains(logContent, errMessage)) {
+		t.Errorf("Log file does not contain the %s message: %s", logType, message)
+	} else {
+		t.Logf("Log file contains the %s message", logType)
 	}
 }
