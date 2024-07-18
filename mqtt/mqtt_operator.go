@@ -47,7 +47,7 @@ type MQTTClient struct {
 }
 
 // NewMQTTClient initializes a new MQTTClient
-func NewMQTTClient(config MQTTConfig, logOperator logger.LogOperator) *MQTTClient {
+func NewMQTTClient(config MQTTConfig, logger logger.LogOperator) *MQTTClient {
 	opts := mqtt.NewClientOptions()
 	opts.AddBroker(config.Broker)
 	opts.SetClientID(config.ClientID)
@@ -59,13 +59,13 @@ func NewMQTTClient(config MQTTConfig, logOperator logger.LogOperator) *MQTTClien
 	opts.ConnectRetryInterval = 5 * time.Second
 
 	opts.OnConnectionLost = func(cl mqtt.Client, err error) {
-		logOperator.Error("Connection lost")
+		logger.Error("Connection lost", err)
 	}
 	opts.OnConnect = func(mqtt.Client) {
-		logOperator.Info("Connection established")
+		logger.Info("Connection established")
 	}
 	opts.OnReconnecting = func(mqtt.Client, *mqtt.ClientOptions) {
-		logOperator.Info("Attempting to reconnect")
+		logger.Info("Attempting to reconnect")
 	}
 
 	client := mqtt.NewClient(opts)
@@ -73,7 +73,7 @@ func NewMQTTClient(config MQTTConfig, logOperator logger.LogOperator) *MQTTClien
 		client:   client,
 		config:   config,
 		msgQueue: make(chan PublishMessage, 100),
-		logger:   logOperator,
+		logger:   logger,
 	}
 
 	go mc.connect()
@@ -88,7 +88,7 @@ func (c *MQTTClient) connect() {
 	c.logger.Info(fmt.Sprintf("Connecting to broker: %s", c.config.Broker))
 
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
-		c.logger.Error(fmt.Sprintf("Error connecting to broker: %v", token.Error()))
+		c.logger.Error(fmt.Sprintf("Error connecting to broker"), token.Error())
 		return
 	}
 
@@ -98,7 +98,7 @@ func (c *MQTTClient) connect() {
 
 	// Subscribe to the topic upon successful connection
 	if token := c.client.Subscribe(c.config.Topic, 2, c.messageHandler); token.Wait() && token.Error() != nil {
-		c.logger.Error(fmt.Sprintf("Error subscribing to topic: %v", token.Error()))
+		c.logger.Error(fmt.Sprintf("Error subscribing to topic"), token.Error())
 	}
 
 	c.logger.Info(fmt.Sprintf("Subscribed to topic: %s", c.config.Topic))
@@ -119,7 +119,7 @@ func (c *MQTTClient) startProcessing() {
 			token := c.client.Publish(msg.Topic, msg.QoS, false, msg.Payload)
 			token.Wait()
 		} else {
-			c.logger.Error("Client not connected, could not publish message")
+			c.logger.Warn("Client not connected, could not publish message")
 		}
 	}
 }
