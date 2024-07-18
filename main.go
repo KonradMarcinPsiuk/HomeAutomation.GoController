@@ -28,8 +28,8 @@ func main() {
 
 	mqttConfig := mqtt.MQTTConfig{
 		Broker:   os.Getenv("mqtt_broker"),
-		Topic:    "topic",
-		ClientID: "go-mqtt-client",
+		Topic:    "boiler_pin_state",
+		ClientID: "go-rpi-mqtt-client",
 		Username: "",
 		Password: "",
 	}
@@ -43,34 +43,34 @@ func main() {
 		if err := pinOperator.Open(); err != nil {
 			log.Panic("Failed to open pin operator", err)
 		}
-
-		defer func() {
-			err = pinOperator.Close()
-			if err != nil {
-				log.Error("Failed to close pin operator", err)
-			}
-		}()
-
-		pinOperator.SetOutputPin(10)
-
-		messageCallback := func(message mqtt.ReceivedMessage) {
-
-			mutex.Lock()
-			defer mutex.Unlock()
-			log.Info(fmt.Sprint("Received message: ", string(message.Payload)))
-
-			if string(message.Payload) == "SetHigh" {
-				pinOperator.SetHigh()
-			}
-			if string(message.Payload) == "SetLow" {
-				pinOperator.SetLow()
-			}
-		}
-
-		mqttClient := mqtt.NewMQTTClient(mqttConfig, log)
-
-		mqttClient.SetMessageCallback(messageCallback)
-
-		select {}
 	}
+
+	defer func() {
+		err = pinOperator.Close()
+		if err != nil {
+			log.Error("Failed to close pin operator", err)
+		}
+	}()
+
+	pinOperator.SetOutputPin(10)
+
+	messageCallback := func(message mqtt.ReceivedMessage) {
+
+		mutex.Lock()
+		defer mutex.Unlock()
+		log.Info(fmt.Sprint("Received message: ", string(message.Payload)))
+
+		if string(message.Payload) == "SetHigh" {
+			pinOperator.SetHigh()
+		}
+		if string(message.Payload) == "SetLow" {
+			pinOperator.SetLow()
+		}
+	}
+
+	mqttClient := mqtt.NewMQTTClient(mqttConfig, log)
+
+	mqttClient.SetMessageCallback(messageCallback)
+
+	select {}
 }
