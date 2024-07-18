@@ -1,13 +1,11 @@
 package logger
 
 type LogOperator interface {
-	Debug(msg string, err ...error)
-	Info(msg string, err ...error)
-	Warn(msg string, err ...error)
-	Error(msg string, err ...error)
-	Close()
-}
-
-type Logger interface {
-	NewLogger(config LogConfig) LogOperator
+	Debug(msg string)
+	Info(msg string)
+	Trace(msg string)
+	Warn(msg string)
+	Error(msg string, err error)
+	Panic(msg string, err error)
+	Close() error
 }

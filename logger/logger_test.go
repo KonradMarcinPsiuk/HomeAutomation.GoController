@@ -1,71 +1,110 @@
 package logger
 
 import (
+	"errors"
 	"os"
 	"strings"
 	"testing"
 )
 
-func TestLoggerWriteToFile(t *testing.T) {
-	const logFilePath = "test.log"
+// getConfig returns a LogConfig struct with the following default values:
+func getConfig() LogConfig {
+	return LogConfig{
+		LogFilePath: "test.log",
+		MaxSize:     5,
+		MaxBackups:  2,
+		MaxAge:      10,
+		BufferSize:  1000,
+	}
+}
 
-	if _, err := os.Stat(logFilePath); err == nil {
-		t.Fatalf("Log file %s already exists", logFilePath)
+// TestLoggerWriteToFile is a test function that verifies the functionality of writing log messages to a file.
+func TestLoggerWriteToFile(t *testing.T) {
+
+	config := getConfig()
+
+	if _, err := os.Stat(config.LogFilePath); err == nil {
+		t.Fatalf("Log file %s already exists", config.LogFilePath)
 	}
 
 	t.Cleanup(func() {
-		if err := os.Remove(logFilePath); err != nil && !os.IsNotExist(err) {
+		if err := os.Remove(config.LogFilePath); err != nil && !os.IsNotExist(err) {
 			t.Fatalf("Cannot remove log file: %v", err)
 		}
 	})
 
-	const (
-		debugMessage = "debug message"
-		infoMessage  = "info message"
-		warnMessage  = "warn message"
-		errorMessage = "error message"
-	)
+	defer func() {
+		if r := recover(); r != nil {
+			t.Log("Recovered in TestLoggerWriteToFile", r)
+		}
+	}()
 
-	config := LogConfig{
-		LogFilePath: logFilePath,
-		BufferSize:  1000,
-		MaxSize:     1,
-		MaxBackups:  1,
-		MaxAge:      1,
-		LogLevel:    DebugLevel,
-	}
+	const (
+		traceMessage    = "trace message"
+		debugMessage    = "debug message"
+		infoMessage     = "info message"
+		warnMessage     = "warn message"
+		errorMessage    = "error message"
+		errorErrMessage = "err_err_message"
+		panicMessage    = "panic message"
+		panicErrMessage = "panic_err_message"
+	)
 
 	logger := NewLogger(config)
 
-	defer logger.Close()
+	defer func(logger *ZeroLogLogger) {
+		err := logger.Close()
+		if err != nil {
+			t.FailNow()
+		}
+	}(logger)
 
+	logger.Trace(traceMessage)
 	logger.Debug(debugMessage)
 	logger.Info(infoMessage)
 	logger.Warn(warnMessage)
-	logger.Error(errorMessage)
+	logger.Error(errorMessage, errors.New(errorErrMessage))
 
-	logger.Close()
+	done := make(chan bool)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Log("Recovered in TestLoggerWriteToFile", r)
+				done <- true
+			}
+		}()
+		logger.Panic("panic message", errors.New("panic_err_message"))
+	}()
+	<-done
 
-	if _, err := os.Stat(logFilePath); os.IsNotExist(err) {
-		t.Fatalf("Log file %s was not created", logFilePath)
+	err := logger.Close()
+	if err != nil {
+		t.Fatalf("Failed to close logger: %v", err)
 	}
 
-	content, err := os.ReadFile(logFilePath)
+	if _, err := os.Stat(config.LogFilePath); os.IsNotExist(err) {
+		t.Fatalf("Log file %s was not created", config.LogFilePath)
+	}
+
+	content, err := os.ReadFile(config.LogFilePath)
 	if err != nil {
 		t.Fatalf("Failed to read log file: %v", err)
 	}
 
 	logContent := string(content)
-	if !strings.Contains(logContent, debugMessage) {
-		t.Errorf("Log file does not contain the debug message: %s", debugMessage)
-	}
-	if !strings.Contains(logContent, infoMessage) {
-		t.Errorf("Log file does not contain the info message: %s", infoMessage)
-	}
-	if !strings.Contains(logContent, warnMessage) {
-		t.Errorf("Log file does not contain the warn message: %s", warnMessage)
-	}
-	if !strings.Contains(logContent, errorMessage) {
-		t.Errorf("Log file does not contain the error message: %s", errorMessage)
+
+	checkLogMessage(t, logContent, traceMessage, "", "trace")
+	checkLogMessage(t, logContent, debugMessage, "", "debug")
+	checkLogMessage(t, logContent, infoMessage, "", "info")
+	checkLogMessage(t, logContent, warnMessage, "", "warn")
+	checkLogMessage(t, logContent, errorMessage, errorErrMessage, "error")
+	checkLogMessage(t, logContent, panicMessage, panicErrMessage, "panic")
+}
+
+func checkLogMessage(t *testing.T, logContent, message, errMessage, logType string) {
+	if !strings.Contains(logContent, message) || (errMessage != "" && !strings.Contains(logContent, errMessage)) {
+		t.Errorf("Log file does not contain the %s message: %s", logType, message)
+	} else {
+		t.Logf("Log file contains the %s message", logType)
 	}
 }

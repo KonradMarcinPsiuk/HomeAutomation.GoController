@@ -35,11 +35,14 @@ func main() {
 		Password: "",
 	}
 
+	log.Info("Starting Pin Operator")
 	pinOperator := initPinOperator(log)
 	pinOperatorOpenErr := pinOperator.Open()
 
 	if pinOperatorOpenErr != nil {
 		log.Error("Failed to open pin operator")
+	if err := pinOperator.Open(); err != nil {
+		log.Panic("Failed to open pin operator", err)
 	}
 
 	defer func() {

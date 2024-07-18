@@ -11,30 +11,24 @@ import (
 type RpiGPIO struct {
 	gpioPin rpio.Pin
 	name    string
-	logger  logger.LogOperator
+	log     logger.LogOperator
 }
 
-func NewRpiGPIO(logger logger.LogOperator) *RpiGPIO {
-	return &RpiGPIO{name: "Raspberry Pi GPIO Controller", logger: logger}
+func NewRpiGPIO(log logger.LogOperator) *RpiGPIO {
+	return &RpiGPIO{name: "Raspberry Pi GPIO Controller", log: log}
 }
 
 func (g *RpiGPIO) SetOutputPin(pin uint8) {
+	g.log.Info(fmt.Sprintf("%s: Setting GPIO pin %v as output", g.name, pin))
+
 	g.gpioPin = rpio.Pin(pin)
 	g.gpioPin.Output()
-}
 
-func (g *RpiGPIO) SetHigh() {
-	g.gpioPin.High()
-	g.logger.Info(fmt.Sprintf("%s: GPIO Pin %v set to HIGH", g.name, g.gpioPin))
-}
-
-func (g *RpiGPIO) SetLow() {
-	g.gpioPin.Low()
-	g.logger.Info(fmt.Sprintf("%s: GPIO Pin %v set to LOW", g.name, g.gpioPin))
+	g.log.Info(fmt.Sprintf("%s: GPIO pin %v set as output", g.name, g.gpioPin))
 }
 
 func (g *RpiGPIO) Open() error {
-	g.logger.Info(fmt.Sprintf("%s: Opening GPIO pin controller", g.name))
+	g.log.Info(fmt.Sprintf("%s: Opening GPIO pin controller", g.name))
 
 	err := rpio.Open()
 
@@ -42,12 +36,22 @@ func (g *RpiGPIO) Open() error {
 		return err
 	}
 
-	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller open", g.name), err)
+	g.log.Info(fmt.Sprintf("%s: GPIO pin controller open", g.name))
 	return nil
 }
 
+func (g *RpiGPIO) SetHigh() {
+	g.gpioPin.High()
+	g.log.Info(fmt.Sprintf("%s: GPIO Pin %v set to HIGH", g.name, g.gpioPin))
+}
+
+func (g *RpiGPIO) SetLow() {
+	g.gpioPin.Low()
+	g.log.Info(fmt.Sprintf("%s: GPIO Pin %v set to LOW", g.name, g.gpioPin))
+}
+
 func (g *RpiGPIO) Close() error {
-	g.logger.Info(fmt.Sprintf("%s: Closing GPIO pin controller", g.name))
+	g.log.Info(fmt.Sprintf("%s: Closing GPIO pin controller", g.name))
 
 	err := rpio.Close()
 
@@ -55,6 +59,6 @@ func (g *RpiGPIO) Close() error {
 		return err
 	}
 
-	g.logger.Info(fmt.Sprintf("%s: GPIO pin controller closed", g.name))
+	g.log.Info(fmt.Sprintf("%s: GPIO pin controller closed", g.name))
 	return nil
 }

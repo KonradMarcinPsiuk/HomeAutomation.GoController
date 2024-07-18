@@ -2,6 +2,7 @@ module GoController
 
 go 1.22
 
+
 require (
 	github.com/eclipse/paho.mqtt.golang v1.4.3 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
@@ -13,6 +14,4 @@ require (
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	gopkg.in/birkirb/loggers.v1 v1.1.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
