@@ -54,23 +54,25 @@ func main() {
 
 	pinOperator.SetOutputPin(10)
 
-	messageCallback := func(message mqtt.ReceivedMessage) {
+	messageCallback := func(mqttClient mqtt.MessageReceiver) func(message mqtt.ReceivedMessage) {
+		return func(message mqtt.ReceivedMessage) {
+			mutex.Lock()
+			defer mutex.Unlock()
+			log.Info(fmt.Sprint("Received message: ", string(message.Payload)))
 
-		mutex.Lock()
-		defer mutex.Unlock()
-		log.Info(fmt.Sprint("Received message: ", string(message.Payload)))
-
-		if string(message.Payload) == "SetHigh" {
-			pinOperator.SetHigh()
-		}
-		if string(message.Payload) == "SetLow" {
-			pinOperator.SetLow()
+			if string(message.Payload) == "SetHigh" {
+				pinOperator.SetHigh()
+				mqttClient.Publish("response_topic", []byte("Pin set to high"), 0)
+			}
+			if string(message.Payload) == "SetLow" {
+				pinOperator.SetLow()
+				mqttClient.Publish("response_topic", []byte("Pin set to low"), 0)
+			}
 		}
 	}
 
-	mqttClient := mqtt.NewMQTTClient(mqttConfig, log)
-
-	mqttClient.SetMessageCallback(messageCallback)
+	var mqttClient mqtt.MessageReceiver = mqtt.NewMQTTClient(mqttConfig, log)
+	mqttClient.SetMessageCallback(messageCallback(mqttClient))
 
 	select {}
 }
